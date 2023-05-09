@@ -1,1 +1,2 @@
-write("Hello world!").
+hello_world :-
+    write("Hello world!").
