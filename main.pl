@@ -16,17 +16,17 @@ insert(
 %
 insert(
     (Sum, I, J, Set), 
-    [(Sum2, I2, J2, Set2)|Lst], 
-    [(Sum, I, J, Set), (Sum2, I2, J2, Set2)|Lst]):-
+    [(Sum2, I2, J2, Set2)|List], 
+    [(Sum, I, J, Set), (Sum2, I2, J2, Set2)|List]):-
         Sum =< Sum2.
 
 %
 insert(
     (Sum, I, J, Set), 
-    [(Sum2, I2, J2, Set2)|Lst], 
+    [(Sum2, I2, J2, Set2)|List], 
     [(Sum2, I2, J2, Set2)|Result]):-
         Sum > Sum2,
-        insert((Sum, I, J, Set), Lst, Result).
+        insert((Sum, I, J, Set), List, Result).
 
 
 
@@ -41,8 +41,8 @@ smallestKset(List, K, Output) :-
     write('Sum\ti\tj\tSublist\n'),
     stringOutput(Output).
 
-writeKSmallest([(Sum, I, J, Lst)| Rest]):-
-    write((Sum, "\t", I, "\t", J, "\t", Lst)),
+writeKSmallest([(Sum, I, J, List)| Rest]):-
+    write((Sum, "\t", I, "\t", J, "\t", List)),
    writeKSmallest(Rest).
 
 
