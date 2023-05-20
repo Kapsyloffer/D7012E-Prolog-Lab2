@@ -4,7 +4,7 @@ subSets(List, Index, SubsetList):-
     sumSubsets(List, Sum),
     length(List, Len),      %Basically size()
     I = Index,              %Set I to index (GetIndex är gone!!)
-    J = Index + Len - 1,    %Set J to ...that.
+    J is Index + Len - 1,    %Set J to ...that.
     SubsetTuple = (Sum, I, J, List), 
     removeFirstElement(List, NewList),
     subSets(NewList, I, RemainingSubsets),
@@ -37,23 +37,11 @@ insertionSort([X|Xs], SortedList) :-
     insertionSort(Xs, RemainingSortedList),
     insert(X, RemainingSortedList, SortedList).
 
-%Case 0: return empty list on basecase-
-insert([X], _, [X]).
-
-%Case 1: Not empty, sum <= sum2
-insert(X, [Y|Ys], [X,Y|Ys]) :-
-    X = (Sum, _, _, _),
-    Y = (Sum2, _, _, _),
+insert(X, [], [X]).
+insert((Sum, I, J, Set), [(Sum2, _, _, _)|_], [(Sum, I, J, Set), (Sum2, _, _, _)]) :-
     Sum =< Sum2.
-
-
-%Case 2: Not empty, sum >= sum2
 insert(X, [Y|Ys], [Y|Result]) :-
-    X = (Sum, _, _, _),
-    Y = (Sum2, _, _, _),
-    Sum > Sum2,
     insert(X, Ys, Result).
-
 
 %Samma som förra labben.
 smallestKset(_, 0, _) :-
@@ -102,7 +90,7 @@ take(K, [X|Xs], [X|Ys]) :-
 
 %Generera listan från test_1
 list_test1(List) :-
-    numlist(1, 100, Range),
+    numlist(1, 99, Range),
     maplist(gen_list_test1, Range, List).
 gen_list_test1(X, Res) :-
     Res is X * (-1) ^ X.
@@ -112,15 +100,22 @@ list_test2([24,-11,-34,42,-24,7,-19,21]).
 %Lista 3
 list_test3([3,2,-4,3,2,-5,-2,2,3,-3,2,-5,6,-2,2,3]).
 
-main :-
+
+testInsertionSort:-
+    insertionSort([(6, 1, 3, [1, 2, 3]), (3, 4, 5, [4, -1, 0]), (5, 2, 4, [2, -2, 5]), (10, 6, 9, [1, 2, 3, 4])], Sorted),
+    write(Sorted),nl.
+
+test1:-
     % Test case 1, k = 15
     list_test1(List_test1),
-    smallestKset(List_test1, 15, Output1),
+    smallestKset(List_test1, 15, _).
 
+test2:-
     % Test case 2, k = 6
     list_test2(List_test2),
-    smallestKset(List_test2, 6, Output2),
+    smallestKset(List_test2, 6, _).
 
+test3:-
     % Test case 3, k = 8
     list_test3(List_test3),
-    smallestKset(List_test3, 8, Output3).
+    smallestKset(List_test3, 8, _).
