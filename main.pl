@@ -1,36 +1,35 @@
-% Drop N elements from head
-dropNFromHead(_, [], []). %Base case
-dropNFromHead(0, L, L). %0
-dropNFromHead(K, [_|Tail], Result) :- %All else
-    K > 0, 
-    K2 is K - 1, 
-    dropNFromHead(K2, Tail, Result).
+%--Christoffer Lindkvist
 
 %Gets the first element in a list.
 getFirst([], []).
 getFirst([Head|_], Head).
 
-getAllLists(1, Input, [Last]) :-
+%Genererar alla kombinationer av sublists av längd N, och returnar [First, Second|Perm]
+%-- Generererar x sublists av längd n, t.ex.
+%-- subListsWithLength 3 [1,2,3,4,5] ger oss: [[1,2,3],[2,3,4],[3,4,5]]
+subListsWithLength(1, Input, [Last]) :-
     member(Last, Input).
-getAllLists(N, Input, [First, Second|Perm]) :- 
-    N > 1, N0 is N-1, 
+subListsWithLength(N, Input, [First, Second|Perm]) :- 
+    N > 1, 
+    N1 is N-1, 
     member(First, Input), 
-    getAllLists(N0, Input, [Second|Perm]).
+    subListsWithLength(N1, Input, [Second|Perm]).
 
-processSublistIndices(_, [], Temp, Temp).
-processSublistIndices(List, [Head|Tail], Temp, Result) :-
+%-- Genererar alla möjliga subsets av en lista
+subSets(List, Result) :-
+    length(List, Length), 
+    findall(Index, between(1, Length, Index), IList), 
+    findall(Perm, (subListsWithLength(2, IList, Permutation), insertionSort(Permutation, Perm)), Permutations), 
+    sort(Permutations, IndexList), %stackoverflow på InsertionSort :/
+    sumSubsets(List, IndexList, [], Temp), 
+    insertionSort(Temp, Result).
+
+%-- Räknar ihop summan av ett givet subset, t.ex. [1, 2] ger 3
+sumSubsets(_, [], Temp, Temp).
+sumSubsets(List, [Head|Tail], Temp, Result) :-
     calcSublist(Head, List, Calc), 
     append(Temp, [Calc], AccumulatedList), 
-    processSublistIndices(List, Tail, AccumulatedList, Result).
-
-calcSublist([Start|End], List, Result) :-
-    getFirst(End, EndFirst),
-    StartMinusOne is Start - 1,
-    EndAdjusted is EndFirst - StartMinusOne,
-    dropNFromHead(StartMinusOne, List, DroppedList),
-    take(EndAdjusted, DroppedList, Sublist),
-    sumlist(Sublist, Sum),
-    Result = [Sum, Start, EndFirst, Sublist].
+    sumSubsets(List, Tail, AccumulatedList, Result).
 
 
 %-- Sorterar subset efter storlek, t.ex. [-99] hamnar före [-98]
@@ -50,36 +49,46 @@ insert(X, [Y|Ys], [Y|Zs]) :-
     X @>= Y, 
     insert(X, Ys, Zs).
 
-getAllSublists(List, Result) :-
-    indexList(List, IndexList), 
-    processSublistIndices(List, IndexList, [], Temp), 
-    sort(Temp, Result).
+% Fixar sum, i, j, och minsta sublisten.
+calcSublist([I|Tail], List, Result) :-
+    getFirst(Tail, J),  %Få J värdet ur tailen
+    N is I - 1,         %Startindex
+    N2 is J - N,        %Slutindex
+    dropNFromHead(N, List, XS),
+    take(N2, XS, Sublist),
+    sumlist(Sublist, Sum),
+    Result = [Sum, I, J, Sublist].
 
-indexList(List, Result) :-
-    length(List, Length), 
-    findall(Index, between(1, Length, Index), IndexList), 
-    findall(Perm, (getAllLists(2, IndexList, Permutation), insertionSort(Permutation, Perm)), Permutations), 
-    sort(Permutations, Result).
-
-kSmallest(List, K) :-
-    getAllSublists(List, Sublists), 
-    take(K, Sublists, Result), 
-    write("kSmallest K="), write(K), nl, 
-    writeSmallestK(Result), !.
-    
-writeSmallestK([]).
-writeSmallestK([[Sum, I, J, Sublist]|Rest]) :-
-    format("Sum: ~w, I: ~w, J: ~w, \tSublist: ~w", [Sum, I, J, Sublist]), nl, 
-    writeSmallestK(Rest).
+% Drop N elements from head
+dropNFromHead(_, [], []). %Base case
+dropNFromHead(0, L, L). %0
+dropNFromHead(K, [_|Tail], Result) :- %All else
+    K > 0, 
+    K2 is K - 1, 
+    dropNFromHead(K2, Tail, Result).
 
 % Basically take from Haskell
 take(0, _, []).
+take(1, [X], [Y]):- %Annars printar den 1 för mycket.
+    getFirst([X], [Y]). 
 take(_, [], []).
 take(K, [X|Xs], [X|Ys]) :-
     K > 0, 
     K1 is K - 1, 
     take(K1, Xs, Ys).
 
+%ksmallest
+kSmallest(List, K) :-
+    subSets(List, Sublists), 
+    take(K, Sublists, Result), 
+    write("kSmallest K="), write(K), nl, 
+    writeSmallestK(Result), !.
+
+%Printa allt
+writeSmallestK([]).
+writeSmallestK([[Sum, I, J, Sublist]|Rest]) :-
+    format("Sum: ~w, I: ~w, J: ~w, \tSublist: ~w", [Sum, I, J, Sublist]), nl, 
+    writeSmallestK(Rest).
 
 % Generate the list for test_1
 list_test1(List) :-
@@ -108,6 +117,7 @@ test3:-
     list_test3(List_test3), 
     kSmallest(List_test3, 8).
 
+%test all
 test:-
     test1, nl, 
     test2, nl, 
